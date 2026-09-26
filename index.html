@@ -6,10 +6,7 @@
     <meta
       name="description"
       content="WarmToast's development notes and experiments." />
-    <meta property="og:title" content="Keyur Shah — dev" />
-    <meta
-      property="og:description"
-      content="Learning and building in public." />
+    <meta property="og:title" content="warmtoast-dev" />
     <meta property="og:type" content="website" />
     <title>warmtoast-dev</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
@@ -19,10 +16,9 @@
   <body>
     <main class="site-shell">
       <header class="site-header">
-        <a class="wordmark" href="dev.html" aria-label="Keyur Shah dev home"
+        <a class="wordmark" href="dev.html" aria-label="warmtoast dev home"
           >warmtoast<span>/dev</span></a
         >
-        <a class="main-site" href="https://keyurshah.net/">keyurshah.net ↗</a>
       </header>
 
       <nav class="tabs" aria-label="Dev site sections">
@@ -63,11 +59,8 @@
           useful things when they appear.
         </p>
         <div class="links">
-          <a
-            href="https://github.com/warmtoast-dev"
-            target="_blank"
-            rel="noopener noreferrer"
-            >GitHub <span aria-hidden="true">↗</span></a
+          <a class="external-link" href="https://github.com/warmtoast-dev"
+            >GitHub</a
           >
         </div>
       </section>
@@ -80,20 +73,23 @@
         hidden>
         <div class="notes-heading">
           <p class="kicker">//feed</p>
-          <a
-            class="bsky-profile"
-            href="https://bsky.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            >open profile ↗</a
-          >
+
+          <span class="feed-live">
+            <span class="feed-live-dot" aria-hidden="true"></span>
+            live
+          </span>
         </div>
         <div class="feed" aria-live="polite"></div>
+        <div class="links">
+          <a class="external-link bsky-profile">reall all on bluesky</a>
+        </div>
       </section>
 
       <footer>
-        Built slowly ·
+        Built slowly.
         <a href="https://personal.keyurshah.net/">personal side</a>
+        -
+        <a href="https://keyurshah.net/">work & experiences</a>
       </footer>
     </main>
   </body>
