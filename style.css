@@ -74,7 +74,7 @@ body {
   background: var(--color-page);
   color: var(--color-ink);
   font-family: var(--font-body);
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
 }
@@ -87,6 +87,15 @@ h1,
 h2,
 p {
   margin-top: 0;
+}
+
+h1,
+h2,
+h3, 
+h4 {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+
 }
 
 .site-shell {
@@ -136,20 +145,12 @@ p {
 
 h1 {
   margin-bottom: var(--space-lg);
-  font-size: clamp(
-    var(--text-lg),
-    5vw,
-    var(--text-xl)
-  );
-  font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-tightest);
   line-height: var(--leading-heading);
 }
 
 h2 {
   margin: 0;
-  font-size: var(--text-md);
-  font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
 }
 

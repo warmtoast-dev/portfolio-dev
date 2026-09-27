@@ -37,6 +37,16 @@
           type="button"
           role="tab"
           aria-selected="false"
+          aria-controls="projects"
+          id="projects-tab"
+          data-tab="projects">
+          projects
+        </button>
+        <button
+          class="tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
           aria-controls="notes"
           id="notes-tab"
           data-tab="notes">
@@ -83,6 +93,31 @@
         <div class="links">
           <a class="external-link bsky-profile">reall all on bluesky</a>
         </div>
+      </section>
+
+      <section
+        class="panel"
+        id="projects"
+        role="tabpanel"
+        aria-labelledby="projects-tab"
+        hidden>
+        <article>
+          <h2>Costco Slop</h2>
+          <p>shipped: 2026-09-26</p>
+          <p>
+            I wanted to see how many people have explained Costco's business
+            model on YouTube. Apparently, quite a lot.
+          </p>
+          <p>430+ videos. 380+ creators · 10+ years.</p>
+          <div class="links">
+            <a href="/blogs/costco-slop.html">read more</a>
+            <a
+              class="external-link"
+              href="https://dev.keyurshah.net/costco-slop/"
+              >view project</a
+            >
+          </div>
+        </article>
       </section>
 
       <footer>
