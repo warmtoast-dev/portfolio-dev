@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Wait, have you heard about Costco? An extremely unnecessary archive of people explaining Costco on YouTube." />
+    <title>Wait, have you heard about Costco?</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="yt-header">
+      <div class="header-inner">
+        <a class="yt-logo" href="#" aria-label="YouTube-ish home">
+          <span class="yt-mark">▶</span><span>Costco<span>Slop</span></span>
+        </a>
+        <div class="search-wrap">
+          <input
+            id="search"
+            type="search"
+            placeholder="Search Costco videos..."
+            aria-label="Search videos" />
+          <button id="searchBtn">Search</button>
+        </div>
+        <div class="header-links">
+          <a href="#about">About</a>
+          <a href="#quiz">Quiz</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-shell">
+      <aside class="sidebar">
+        <div class="side-section">
+          <div class="side-title">Browse</div>
+          <button class="side-link active" data-sort="latest">Latest</button>
+          <button class="side-link" data-sort="popular">Most viewed</button>
+          <button class="side-link" data-sort="oldest">Oldest</button>
+          <button class="side-link" id="randomBtn">I'm feeling Costco</button>
+        </div>
+
+        <div class="side-section">
+          <div class="side-title">Filter by year</div>
+          <select id="yearFilter">
+            <option value="all">All years</option>
+          </select>
+        </div>
+
+        <div class="side-section">
+          <div class="side-title">Creator</div>
+          <select id="creatorFilter">
+            <option value="all">All creators</option>
+          </select>
+        </div>
+
+        <div class="side-section tiny-note">
+          <strong>Important</strong>
+          <p>This is not Costco's website.</p>
+          <p>It is also not YouTube.</p>
+          <p>It is just a collection of people explaining Costco to you.</p>
+        </div>
+      </aside>
+
+      <main class="content">
+        <section class="hero">
+          <div class="hero-kicker">COSTCO SLOP ARCHIVE</div>
+          <h1>Wait, have you heard about Costco?</h1>
+          <p class="hero-copy">
+            Infinite ways to explain that Costco charges a membership fee
+          </p>
+          <div class="stats" id="stats"></div>
+        </section>
+
+        <section class="toolbar" aria-label="Archive controls">
+          <div class="toolbar-left">
+            <span class="toolbar-label">Videos</span>
+            <span id="resultCount"></span>
+          </div>
+          <div class="toolbar-right">
+            <button class="sort-btn active" data-sort="latest">Latest</button>
+            <button class="sort-btn" data-sort="popular">Most viewed</button>
+            <button class="sort-btn" data-sort="oldest">Oldest</button>
+          </div>
+        </section>
+
+        <section id="videoGrid" class="video-grid" aria-live="polite"></section>
+
+        <section class="archive-end" id="about">
+          <div class="end-line"></div>
+          <p class="end-small">YOU HAVE REACHED THE END OF THE INTERNET</p>
+          <h2>Except there is probably another Costco video.</h2>
+          <p>
+            This archive is deliberately incomplete. The point isn't to find
+            every video. The point is to notice that there is always another
+            video explaining how costco works.
+          </p>
+          <p class="research-note">
+            Prototype dataset assembled from public YouTube. Metadata can change
+            over time. Video cards link back to YouTube rather than reproducing
+            the videos here.
+          </p>
+          <p>Please dont sue me Costco.</p>
+        </section>
+
+        <section class="quiz" id="quiz">
+          <div class="quiz-kicker">A COMPLETELY UNNECESSARY ASSESSMENT</div>
+          <h2>How much Costco have you absorbed?</h2>
+          <p>Ten questions. No prize. No membership discount. Probably.</p>
+          <div id="quizApp"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
