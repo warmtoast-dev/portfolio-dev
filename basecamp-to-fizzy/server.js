@@ -11,29 +11,83 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 const sessions = new Map();
+const SESSION_COOKIE = "basecamp_fizzy_session";
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24;
+
+function setSessionCookie(res, id) {
+  res.setHeader(
+    "Set-Cookie",
+    SESSION_COOKIE + "=" + id + "; HttpOnly; SameSite=Lax; Path=/; Max-Age=" + Math.floor(SESSION_TTL_MS / 1000)
+  );
+}
+
+function getSessionFromCookie(req) {
+  const header = req.headers.cookie || "";
+  const match = header.match(new RegExp("(?:^|;\\s*)" + SESSION_COOKIE + "=([^;]+)"));
+  return match ? sessions.get(match[1]) : null;
+}
 
 function sessionId() {
   return crypto.randomBytes(24).toString("hex");
 }
 
 function getSession(req) {
-  const id = req.headers["x-session-id"];
-  return id ? sessions.get(id) : null;
+  return getSessionFromCookie(req);
 }
 
 async function basecampFetch(session, endpoint, options = {}) {
-  const response = await fetch(endpoint, {
-    ...options,
-    headers: {
-      Authorization: "Bearer " + session.basecamp.accessToken,
-      Accept: "application/json",
-      "User-Agent": "Basecamp to Fizzy (community importer)",
-      ...(options.headers || {})
-    }
-  });
+  async function request() {
+    return fetch(endpoint, {
+      ...options,
+      headers: {
+        Authorization: "Bearer " + session.basecamp.accessToken,
+        Accept: "application/json",
+        "User-Agent": "Basecamp → Fizzy community importer (https://github.com/warmtoast-dev/portfolio-dev)",
+        ...(options.headers || {})
+      }
+    });
+  }
 
-  if (!response.ok) throw new Error("Basecamp API returned " + response.status);
+  let response = await request();
+
+  if (response.status === 401 && session.basecamp.refreshToken) {
+    const refreshResponse = await fetch(
+      "https://launchpad.37signals.com/authorization/token",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: session.basecamp.refreshToken,
+          client_id: process.env.BASECAMP_CLIENT_ID,
+          client_secret: process.env.BASECAMP_CLIENT_SECRET
+        })
+      }
+    );
+
+    if (refreshResponse.ok) {
+      const refreshed = await refreshResponse.json();
+      session.basecamp.accessToken = refreshed.access_token;
+      session.basecamp.refreshToken =
+        refreshed.refresh_token || session.basecamp.refreshToken;
+      session.basecamp.expiresAt =
+        Date.now() + (Number(refreshed.expires_in || 1209600) * 1000);
+      response = await request();
+    }
+  }
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(
+      "Basecamp API returned " + response.status + ": " + body.slice(0, 300)
+    );
+  }
+
   return response.json();
 }
 
@@ -141,14 +195,17 @@ app.get("/auth/basecamp/callback", async (req, res) => {
 
     const id = sessionId();
     sessions.set(id, {
+      createdAt: Date.now(),
       basecamp: {
         accessToken: token.access_token,
         refreshToken: token.refresh_token,
+        expiresAt: Date.now() + (Number(token.expires_in || 1209600) * 1000),
         account
       }
     });
 
-    res.redirect("/?session=" + id);
+    setSessionCookie(res, id);
+    res.redirect("/");
   } catch (error) {
     console.error(error);
     res.status(500).send("Basecamp authentication failed.");
@@ -419,15 +476,6 @@ app.post("/api/import", async (req, res) => {
     res.json({
       status: "imported",
       boardTitle: cardTable.title,
-      lists: cardTable.lists.map((list) => ({
-        name: list.title,
-        expectedCards: list.cards_count ?? null,
-        returnedCards: (list.cards || []).length
-      })),
-      cardsFound: cardTable.lists.reduce(
-        (total, column) => total + (column.cards || []).length,
-        0
-      ),
       cardsCreated,
       boardUrl: "https://app.fizzy.do" + accountSlug + "/boards/" + boardId
     });
