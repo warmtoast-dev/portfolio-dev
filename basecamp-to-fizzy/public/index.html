@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Basecamp → Fizzy</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">COMMUNITY TOOL</p>
+        <h1>Basecamp <span>→</span> Fizzy</h1>
+        <p class="lede">Move a Basecamp Card Table into a brand-new Fizzy board.</p>
+      </div>
+      <a class="text-link" href="https://github.com/warmtoast-dev/portfolio-dev" target="_blank" rel="noreferrer">Open source</a>
+    </header>
+
+    <section id="start" class="panel">
+      <h2>Move a Card Table</h2>
+      <p>Connect Basecamp, choose a Card Table, review the mapping, and import it as a new Fizzy board.</p>
+      <a class="button" href="/auth/basecamp">Connect Basecamp</a>
+    </section>
+
+    <section id="workspace" class="panel hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">BASECAMP</p>
+          <h2>Choose your Card Table</h2>
+        </div>
+      </div>
+
+      <label>
+        Project
+        <select id="project"></select>
+      </label>
+
+      <label>
+        Card Table
+        <select id="cardTable"></select>
+      </label>
+
+      <button id="preview" class="button" disabled>Review import</button>
+    </section>
+
+    <section id="review" class="panel hidden">
+      <p class="eyebrow">NEW FIZZY BOARD</p>
+      <h2 id="boardName"></h2>
+      <div id="mapping" class="mapping"></div>
+
+      <div class="notice">
+        <strong>v1 import rules</strong>
+        <ul>
+          <li>Basecamp Triage becomes Fizzy Maybe.</li>
+          <li>Every other column keeps its name.</li>
+          <li>On Hold cards get an <code>ON HOLD:</code> title prefix.</li>
+          <li>Due dates are added to the card description.</li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button id="back" class="button secondary">Back</button>
+        <button id="import" class="button">Import to Fizzy</button>
+      </div>
+    </section>
+
+    <section id="done" class="panel hidden">
+      <p class="eyebrow">DONE</p>
+      <h2>Ready to create your Fizzy board.</h2>
+      <p id="result"></p>
+    </section>
+  </main>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
