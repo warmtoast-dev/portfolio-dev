@@ -41,12 +41,6 @@ function setSessionCookie(res, id) {
   );
 }
 
-function getSessionFromCookie(req) {
-  const header = req.headers.cookie || "";
-  const match = header.match(new RegExp("(?:^|;\\s*)" + SESSION_COOKIE + "=([^;]+)"));
-  return match ? sessions.get(match[1]) : null;
-}
-
 function sessionId() {
   return crypto.randomBytes(24).toString("hex");
 }
@@ -67,7 +61,7 @@ function getSession(req) {
   return session;
 }
 
-async function basecampFetch(session, endpoint, options = {}) {
+async function basecampRequest(session, endpoint, options = {}) {
   async function request() {
     return fetch(endpoint, {
       ...options,
@@ -103,7 +97,7 @@ async function basecampFetch(session, endpoint, options = {}) {
       session.basecamp.refreshToken =
         refreshed.refresh_token || session.basecamp.refreshToken;
       session.basecamp.expiresAt =
-        Date.now() + (Number(refreshed.expires_in || 1209600) * 1000);
+        Date.now() + Number(refreshed.expires_in || 1209600) * 1000;
       response = await request();
     }
   }
@@ -115,7 +109,34 @@ async function basecampFetch(session, endpoint, options = {}) {
     );
   }
 
+  return response;
+}
+
+async function basecampFetch(session, endpoint, options = {}) {
+  const response = await basecampRequest(session, endpoint, options);
   return response.json();
+}
+
+async function basecampFetchAll(session, endpoint) {
+  const items = [];
+  let nextUrl = endpoint;
+
+  while (nextUrl) {
+    const response = await basecampRequest(session, nextUrl);
+    const page = await response.json();
+
+    if (!Array.isArray(page)) {
+      throw new Error("Basecamp returned a non-list response from " + nextUrl);
+    }
+
+    items.push(...page);
+
+    const link = response.headers.get("link") || "";
+    const nextMatch = link.match(/<([^>]+)>;\\s*rel="next"/i);
+    nextUrl = nextMatch ? nextMatch[1] : null;
+  }
+
+  return items;
 }
 
 async function fizzyFetch(endpoint, options = {}) {
@@ -244,7 +265,7 @@ app.get("/api/projects", async (req, res) => {
     const session = getSession(req);
     if (!session) return res.status(401).json({ error: "Not authenticated." });
 
-    const data = await basecampFetch(
+    const data = await basecampFetchAll(
       session,
       session.basecamp.account.href + "/projects.json"
     );
@@ -345,7 +366,7 @@ app.get("/api/card-table/:id", async (req, res) => {
     const enrichedColumns = [];
 
     for (const column of table.lists || []) {
-      const cards = await basecampFetch(session, column.cards_url);
+      const cards = await basecampFetchAll(session, column.cards_url);
 
       enrichedColumns.push({ ...column, cards });
     }
@@ -376,7 +397,7 @@ app.post("/api/import", async (req, res) => {
       const cards = await basecampFetch(session, column.cards_url);
 
       const onHoldCards = column.on_hold?.cards_url
-        ? await basecampFetch(session, column.on_hold.cards_url)
+        ? await basecampFetchAll(session, column.on_hold.cards_url)
         : [];
 
       enrichedColumns.push({
