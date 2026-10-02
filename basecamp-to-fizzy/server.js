@@ -260,7 +260,7 @@ app.get("/api/card-table/:id", async (req, res) => {
 
     const enrichedColumns = [];
 
-    for (const column of table.columns || []) {
+    for (const column of table.lists || []) {
       const cards = await basecampFetch(
         session,
         session.basecamp.account.href +
@@ -294,7 +294,7 @@ app.post("/api/import", async (req, res) => {
 
     const enrichedColumns = [];
 
-    for (const column of table.columns || []) {
+    for (const column of table.lists || []) {
       const cards = await basecampFetch(
         session,
         session.basecamp.account.href +
@@ -320,7 +320,7 @@ app.post("/api/import", async (req, res) => {
 
     const columnMap = new Map();
 
-    for (const basecampColumn of cardTable.columns) {
+    for (const basecampColumn of cardTable.lists) {
       const destination = targetColumnName(basecampColumn.title);
 
       if (!destination) {
@@ -349,7 +349,7 @@ app.post("/api/import", async (req, res) => {
 
     let cardsCreated = 0;
 
-    for (const basecampColumn of cardTable.columns) {
+    for (const basecampColumn of cardTable.lists) {
       for (const card of basecampColumn.cards || []) {
         const createdCard = await fizzyFetch(
           accountSlug + "/boards/" + boardId + "/cards",
@@ -384,7 +384,7 @@ app.post("/api/import", async (req, res) => {
     res.json({
       status: "imported",
       boardTitle: cardTable.title,
-      cardsFound: cardTable.columns.reduce(
+      cardsFound: cardTable.lists.reduce(
         (total, column) => total + (column.cards || []).length,
         0
       ),
