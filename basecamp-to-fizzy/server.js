@@ -408,6 +408,11 @@ app.post("/api/import", async (req, res) => {
     res.json({
       status: "imported",
       boardTitle: cardTable.title,
+      lists: cardTable.lists.map((list) => ({
+        name: list.title,
+        expectedCards: list.cards_count ?? null,
+        returnedCards: (list.cards || []).length
+      })),
       cardsFound: cardTable.lists.reduce(
         (total, column) => total + (column.cards || []).length,
         0
