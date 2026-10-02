@@ -1,7 +1,7 @@
 const params = new URLSearchParams(location.search);
 const sessionId = params.get("session");
 const $ = (id) => document.getElementById(id);
-const state = { projects: [], cardTables: [] };
+const state = { cardTables: [] };
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -17,23 +17,30 @@ function show(id) {
   ["start", "workspace", "done"].forEach((name) => $(name).classList.toggle("hidden", name !== id));
 }
 
-async function loadProjects() {
+async function loadCardTables() {
   if (!sessionId) return;
   $("start").classList.add("hidden");
   $("workspace").classList.remove("hidden");
-  state.projects = await api("/api/projects");
-  $("project").innerHTML = state.projects.map((project) =>
-    '<option value="' + project.id + '">' + escapeHtml(project.name) + "</option>"
-  ).join("");
-  await loadCardTables();
-}
 
-async function loadCardTables() {
-  const projectId = $("project").value;
-  state.cardTables = await api("/api/projects/" + projectId + "/card-tables");
+  const projects = await api("/api/projects");
+  const results = await Promise.all(
+    projects.map(async (project) => {
+      const tables = await api("/api/projects/" + project.id + "/card-tables");
+      return tables.map((table) => ({
+        ...table,
+        projectName: project.name
+      }));
+    })
+  );
+
+  state.cardTables = results.flat();
+
   $("cardTable").innerHTML = state.cardTables.map((table) =>
-    '<option value="' + table.id + '">' + escapeHtml(table.title || table.name) + "</option>"
+    '<option value="' + table.id + '">' +
+    escapeHtml(table.projectName + " — " + (table.title || table.name)) +
+    "</option>"
   ).join("");
+
   $("import").disabled = !state.cardTables.length;
 }
 
@@ -65,6 +72,5 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
-$("project")?.addEventListener("change", loadCardTables);
 $("import")?.addEventListener("click", importSelected);
-loadProjects().catch((error) => { console.error(error); alert(error.message); });
+loadCardTables().catch((error) => { console.error(error); alert(error.message); });
