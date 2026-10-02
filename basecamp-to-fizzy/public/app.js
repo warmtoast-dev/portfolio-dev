@@ -55,7 +55,6 @@ function show(id) {
 }
 
 async function loadCardTables() {
-  if (!sessionId) return;
 
   $("start").classList.add("hidden");
   $("workspace").classList.remove("hidden");
