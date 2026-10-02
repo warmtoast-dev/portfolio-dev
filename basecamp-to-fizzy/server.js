@@ -86,7 +86,7 @@ function buildTitle(card) {
 
 function targetColumnName(basecampColumnName) {
   return basecampColumnName.trim().toLowerCase() === "triage"
-    ? null
+    ? "Maybe"
     : basecampColumnName;
 }
 
@@ -258,22 +258,19 @@ app.get("/api/card-table/:id", async (req, res) => {
       session.basecamp.account.href + "/card_tables/" + req.params.id + ".json"
     );
 
-    const columns = await basecampFetch(
-      session,
-      session.basecamp.account.href + "/card_tables/" + req.params.id + "/columns.json"
-    );
-
     const enrichedColumns = [];
-    for (const column of columns) {
-      const cards = await basecampFetch(
-        session,
-        session.basecamp.account.href + "/card_tables/columns/" + column.id + "/cards.json"
-      );
+
+    for (const column of table.columns || []) {
+      const cards = column.cards_url
+        ? await basecampFetch(session, column.cards_url)
+        : [];
+
       enrichedColumns.push({ ...column, cards });
     }
 
     res.json({ ...table, columns: enrichedColumns });
   } catch (error) {
+    console.error(error);
     res.status(502).json({ error: error.message });
   }
 });
@@ -291,17 +288,13 @@ app.post("/api/import", async (req, res) => {
       session.basecamp.account.href + "/card_tables/" + cardTableId + ".json"
     );
 
-    const columns = await basecampFetch(
-      session,
-      session.basecamp.account.href + "/card_tables/" + cardTableId + "/columns.json"
-    );
-
     const enrichedColumns = [];
-    for (const column of columns) {
-      const cards = await basecampFetch(
-        session,
-        session.basecamp.account.href + "/card_tables/columns/" + column.id + "/cards.json"
-      );
+
+    for (const column of table.columns || []) {
+      const cards = column.cards_url
+        ? await basecampFetch(session, column.cards_url)
+        : [];
+
       enrichedColumns.push({ ...column, cards });
     }
 
