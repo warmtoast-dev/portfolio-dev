@@ -1,55 +1,73 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Basecamp → Fizzy</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <main class="shell">
-    <header class="masthead">
-      <div>
-        <p class="eyebrow">COMMUNITY TOOL</p>
-        <h1>Basecamp <span>→</span> Fizzy</h1>
-        <p class="lede">Move a Basecamp Card Table into a brand-new Fizzy board.</p>
-      </div>
-      <a class="text-link" href="https://github.com/warmtoast-dev/portfolio-dev" target="_blank" rel="noreferrer">Open source</a>
-    </header>
-
-    <section id="start" class="panel">
-      <h2>Move a Card Table</h2>
-      <p>Connect Basecamp, choose a Card Table, and import it as a new Fizzy board. No destination board to configure.</p>
-      <a class="button" href="/auth/basecamp">Connect Basecamp</a>
-    </section>
-
-    <section id="workspace" class="panel hidden">
-      <div class="section-heading">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Basecamp → Fizzy</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="masthead">
         <div>
-          <p class="eyebrow">BASECAMP</p>
-          <h2>Choose your Card Table</h2>
+          <p class="eyebrow">COMMUNITY TOOL</p>
+          <h1>Basecamp <span>→</span> Fizzy</h1>
+          <p class="lede">
+            Move a Basecamp Card Table into a brand-new Fizzy board.
+          </p>
         </div>
-      </div>
-      <label>Basecamp Card Table<select id="cardTable"></select></label>
-      <div class="notice">
-        <strong>Import rules</strong>
-        <ul>
-          <li>A new Fizzy board is created with the same name as the Card Table.</li>
-          <li>Basecamp Triage becomes Fizzy Maybe.</li>
-          <li>Every other column keeps its Basecamp name.</li>
-          <li>On Hold cards get an <code>ON HOLD:</code> title prefix.</li>
-          <li>Due dates are preserved in the card description.</li>
-        </ul>
-      </div>
-      <button id="import" class="button" disabled>Import to Fizzy</button>
-    </section>
+        <a
+          class="text-link"
+          href="https://github.com/warmtoast-dev/portfolio-dev"
+          target="_blank"
+          rel="noreferrer"
+          >Open source</a
+        >
+      </header>
 
-    <section id="done" class="panel hidden">
-      <p class="eyebrow">DONE</p>
-      <h2>Import complete.</h2>
-      <p id="result"></p>
-    </section>
-  </main>
-  <script src="/app.js" type="module"></script>
-</body>
+      <section id="start" class="panel">
+        <h2>Move a Card Table</h2>
+        <p>
+          Connect Basecamp, choose a Card Table, and import it as a new Fizzy
+          board. No destination board to configure.
+        </p>
+        <a class="button" href="/auth/basecamp">Connect Basecamp</a>
+      </section>
+
+      <section id="workspace" class="panel hidden">
+        <div class="section-heading">
+          <div>
+            <!-- <p class="eyebrow">BASECAMP</p> -->
+            <h2>Choose your Card Table from Basecamp</h2>
+          </div>
+        </div>
+        <label>Basecamp Card Table<select id="cardTable"></select></label>
+        <div class="notice">
+          <strong>Import rules</strong>
+          <ul>
+            <li>
+              A new Fizzy board is created with the same name as the Card Table.
+            </li>
+            <li>
+              Basecamp to Fizzy columns:
+              <ul>
+                <li>Triage -> Maybe</li>
+                <li>On Hold cards get an <code>ON HOLD</code> title prefix.</li>
+              </ul>
+            </li>
+            <li>Every other column keeps its Basecamp name.</li>
+            <li>Due dates are preserved in the card description.</li>
+          </ul>
+        </div>
+        <button id="import" class="button" disabled>Import to Fizzy</button>
+      </section>
+
+      <section id="done" class="panel hidden">
+        <p class="eyebrow">DONE</p>
+        <h2>Import complete.</h2>
+        <p id="result"></p>
+      </section>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
 </html>
