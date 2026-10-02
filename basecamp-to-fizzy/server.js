@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const sessions = new Map();
 const SESSION_COOKIE = "basecamp_fizzy_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24;
+const OAUTH_STATE_TTL_MS = 1000 * 60 * 10;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,6 +43,10 @@ function setSessionCookie(res, id) {
 }
 
 function sessionId() {
+  return crypto.randomBytes(24).toString("hex");
+}
+
+function oauthState() {
   return crypto.randomBytes(24).toString("hex");
 }
 
@@ -193,10 +198,22 @@ function targetColumnName(basecampColumnName) {
 }
 
 app.get("/auth/basecamp", (req, res) => {
+  const id = sessionId();
+  const state = oauthState();
+
+  sessions.set(id, {
+    createdAt: Date.now(),
+    oauthState: state,
+    oauthCreatedAt: Date.now()
+  });
+
+  setSessionCookie(res, id);
+
   const params = new URLSearchParams({
     response_type: "code",
     client_id: process.env.BASECAMP_CLIENT_ID,
-    redirect_uri: process.env.BASECAMP_REDIRECT_URI
+    redirect_uri: process.env.BASECAMP_REDIRECT_URI,
+    state
   });
 
   res.redirect("https://launchpad.37signals.com/authorization/new?" + params);
@@ -204,8 +221,25 @@ app.get("/auth/basecamp", (req, res) => {
 
 app.get("/auth/basecamp/callback", async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
     if (!code) return res.status(400).send("Missing Basecamp authorization code.");
+    if (!state) return res.status(400).send("Missing Basecamp authorization state.");
+
+    const session = getSession(req);
+    if (!session?.oauthState) {
+      return res.status(400).send("Basecamp authorization session expired.");
+    }
+
+    if (
+      Date.now() - session.oauthCreatedAt > OAUTH_STATE_TTL_MS ||
+      state !== session.oauthState
+    ) {
+      const match = (req.headers.cookie || "").match(
+        new RegExp("(?:^|;\\s*)" + SESSION_COOKIE + "=([^;]+)")
+      );
+      if (match) sessions.delete(match[1]);
+      return res.status(400).send("Invalid Basecamp authorization state.");
+    }
 
     const tokenResponse = await fetch(
       "https://launchpad.37signals.com/authorization/token",
@@ -241,18 +275,24 @@ app.get("/auth/basecamp/callback", async (req, res) => {
 
     if (!account) return res.status(400).send("No Basecamp account available.");
 
-    const id = sessionId();
-    sessions.set(id, {
-      createdAt: Date.now(),
-      basecamp: {
-        accessToken: token.access_token,
-        refreshToken: token.refresh_token,
-        expiresAt: Date.now() + (Number(token.expires_in || 1209600) * 1000),
-        account
-      }
-    });
+    session.createdAt = Date.now();
+    delete session.oauthState;
+    delete session.oauthCreatedAt;
+    session.basecamp = {
+      accessToken: token.access_token,
+      refreshToken: token.refresh_token,
+      expiresAt: Date.now() + (Number(token.expires_in || 1209600) * 1000),
+      account
+    };
 
-    setSessionCookie(res, id);
+    const match = (req.headers.cookie || "").match(
+      new RegExp("(?:^|;\\s*)" + SESSION_COOKIE + "=([^;]+)")
+    );
+    if (!match) {
+      return res.status(400).send("Basecamp authorization session expired.");
+    }
+
+    setSessionCookie(res, match[1]);
     res.redirect("/");
   } catch (error) {
     console.error(error);
