@@ -290,7 +290,18 @@ app.post("/api/import", async (req, res) => {
 
     for (const column of table.lists || []) {
       const cards = await basecampFetch(session, column.cards_url);
-      enrichedColumns.push({ ...column, cards });
+
+      const onHoldCards = column.on_hold?.cards_url
+        ? await basecampFetch(session, column.on_hold.cards_url)
+        : [];
+
+      enrichedColumns.push({
+        ...column,
+        cards: [
+          ...cards,
+          ...onHoldCards.map((card) => ({ ...card, on_hold: true }))
+        ]
+      });
     }
 
     const cardTable = { ...table, lists: enrichedColumns };
