@@ -261,9 +261,13 @@ app.get("/api/card-table/:id", async (req, res) => {
     const enrichedColumns = [];
 
     for (const column of table.columns || []) {
-      const cards = column.cards_url
-        ? await basecampFetch(session, column.cards_url)
-        : [];
+      const cards = await basecampFetch(
+        session,
+        session.basecamp.account.href +
+          "/card_tables/lists/" +
+          column.id +
+          "/cards.json"
+      );
 
       enrichedColumns.push({ ...column, cards });
     }
