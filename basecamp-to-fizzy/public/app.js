@@ -12,8 +12,42 @@ async function api(path, options = {}) {
     }
   });
 
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Something went wrong.");
+  const text = await response.text();
+
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    throw new Error(
+      "Server returned invalid JSON (" +
+      response.status +
+      " " +
+      response.statusText +
+      ") from " +
+      path +
+      ": " +
+      text.slice(0, 200)
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+      "Request failed (" + response.status + " " + response.statusText + ")"
+    );
+  }
+
+  if (data === null) {
+    throw new Error(
+      "Server returned an empty response (" +
+      response.status +
+      " " +
+      response.statusText +
+      ") from " +
+      path
+    );
+  }
+
   return data;
 }
 
