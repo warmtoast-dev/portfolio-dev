@@ -1,5 +1,3 @@
-const params = new URLSearchParams(location.search);
-const sessionId = params.get("session");
 const $ = (id) => document.getElementById(id);
 const state = { cardTables: [] };
 
@@ -7,8 +5,7 @@ async function api(path, options = {}) {
   const response = await fetch(path, {
     ...options,
     headers: {
-      ...(options.headers || {}),
-      ...(sessionId ? { "X-Session-Id": sessionId } : {})
+      ...(options.headers || {})
     }
   });
 
