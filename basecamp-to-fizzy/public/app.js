@@ -29,33 +29,36 @@ async function loadCardTables() {
   $("start").classList.add("hidden");
   $("workspace").classList.remove("hidden");
 
-  // Keep the original working Basecamp API flow:
-  // 1. fetch projects
-  // 2. fetch Card Table for each project
+  // Use the original Basecamp request flow, but load projects one at a time.
+  // This avoids firing a request for every project simultaneously.
   const projects = await api("/api/projects");
 
-  const results = await Promise.all(
-    projects.map(async (project) => {
-      const tables = await api(
-        "/api/projects/" + project.id + "/card-tables"
-      );
+  state.cardTables = [];
+  $("cardTable").innerHTML = '<option value="">Loading Card Tables…</option>';
+  $("import").disabled = true;
 
-      return tables.map((table) => ({
+  for (const project of projects) {
+    const tables = await api(
+      "/api/projects/" + project.id + "/card-tables"
+    );
+
+    for (const table of tables) {
+      state.cardTables.push({
         ...table,
         projectName: project.name
-      }));
-    })
-  );
+      });
+    }
+  }
 
-  state.cardTables = results.flat();
-
-  $("cardTable").innerHTML = state.cardTables
-    .map((table) =>
-      '<option value="' + table.id + '">' +
-      escapeHtml(table.projectName + " — " + (table.title || table.name)) +
-      "</option>"
-    )
-    .join("");
+  $("cardTable").innerHTML = state.cardTables.length
+    ? state.cardTables
+        .map((table) =>
+          '<option value="' + table.id + '">' +
+          escapeHtml(table.projectName + " — " + (table.title || table.name)) +
+          "</option>"
+        )
+        .join("")
+    : '<option value="">No Card Tables found</option>';
 
   $("import").disabled = !state.cardTables.length;
 }
