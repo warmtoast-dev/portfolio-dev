@@ -170,6 +170,50 @@ app.get("/api/projects", async (req, res) => {
   }
 });
 
+async function getCardTablesForProject(session, project) {
+  const projectData = await basecampFetch(
+    session,
+    session.basecamp.account.href + "/projects/" + project.id + ".json"
+  );
+
+  const tool = projectData.dock?.find(
+    (item) => item.name === "Card Table" || item.name === "Kanban Board"
+  );
+
+  if (!tool?.url) return [];
+
+  const table = await basecampFetch(session, tool.url);
+
+  return [{
+    ...table,
+    projectName: project.name,
+    projectId: project.id
+  }];
+}
+
+app.get("/api/card-tables", async (req, res) => {
+  try {
+    const session = getSession(req);
+    if (!session) return res.status(401).json({ error: "Not authenticated." });
+
+    const projects = await basecampFetch(
+      session,
+      session.basecamp.account.href + "/projects.json"
+    );
+
+    const cardTables = [];
+    for (const project of projects) {
+      const tables = await getCardTablesForProject(session, project);
+      cardTables.push(...tables);
+    }
+
+    res.json(cardTables);
+  } catch (error) {
+    console.error(error);
+    res.status(502).json({ error: error.message });
+  }
+});
+
 app.get("/api/projects/:projectId/card-tables", async (req, res) => {
   try {
     const session = getSession(req);
