@@ -293,7 +293,7 @@ app.post("/api/import", async (req, res) => {
       enrichedColumns.push({ ...column, cards });
     }
 
-    const cardTable = { ...table, columns: enrichedColumns };
+    const cardTable = { ...table, lists: enrichedColumns };
     const account = await fizzyAccount();
     const accountSlug = account.slug;
 
@@ -375,12 +375,12 @@ app.post("/api/import", async (req, res) => {
 
         if (destination === "done") {
           await fizzyFetch(
-            accountSlug + "/cards/" + cardNumber + "/close",
+            accountSlug + "/cards/" + cardNumber + "/closure",
             { method: "POST" }
           );
         } else if (destination === "not now") {
           await fizzyFetch(
-            accountSlug + "/cards/" + cardNumber + "/postpone",
+            accountSlug + "/cards/" + cardNumber + "/not_now",
             { method: "POST" }
           );
         } else if (target?.id) {
