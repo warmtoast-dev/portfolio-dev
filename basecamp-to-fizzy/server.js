@@ -170,15 +170,28 @@ app.get("/api/projects", async (req, res) => {
   }
 });
 
+function findCardTableTool(dock = []) {
+  return dock.find((item) => {
+    if (item.enabled === false) return false;
+
+    const name = String(item.name || "").trim().toLowerCase();
+
+    return (
+      name === "kanban_board" ||
+      name === "card_table" ||
+      name === "card table" ||
+      name === "kanban board"
+    );
+  });
+}
+
 async function getCardTablesForProject(session, project) {
   const projectData = await basecampFetch(
     session,
     session.basecamp.account.href + "/projects/" + project.id + ".json"
   );
 
-  const tool = projectData.dock?.find(
-    (item) => item.name === "Card Table" || item.name === "Kanban Board"
-  );
+  const tool = findCardTableTool(projectData.dock);
 
   if (!tool?.url) return [];
 
@@ -224,9 +237,7 @@ app.get("/api/projects/:projectId/card-tables", async (req, res) => {
       session.basecamp.account.href + "/projects/" + req.params.projectId + ".json"
     );
 
-    const tool = project.dock?.find(
-      (item) => item.name === "Card Table" || item.name === "Kanban Board"
-    );
+    const tool = findCardTableTool(project.dock);
 
     if (!tool?.url) return res.json([]);
 
