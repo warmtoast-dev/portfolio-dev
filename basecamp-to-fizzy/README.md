@@ -1,65 +1,178 @@
 # Basecamp → Fizzy
 
-A small community importer that turns a Basecamp Card Table into a new Fizzy board.
+A small, free, open-source community tool for importing a Basecamp Card Table into a brand-new Fizzy board.
 
-## MVP flow
+The project is intentionally **self-hosted**. You run your own copy, connect your own Basecamp account, and provide your own Fizzy API token. No shared credentials or central database are required.
 
-1. Connect Basecamp.
-2. Choose a Basecamp project.
-3. Choose a Basecamp Card Table.
-4. Click **Import to Fizzy**.
+## What it does
 
-That's it. There is deliberately no destination-board selector: every import creates a new Fizzy board with the same name as the Basecamp Card Table.
+1. Connect Basecamp with OAuth 2.0.
+2. Choose one Basecamp Card Table.
+3. Create a new Fizzy board with the same name.
+4. Import the cards and preserve their important Card Table state.
 
-## Mapping rules
+### Mapping
 
-- Basecamp Card Table name → Fizzy board name.
-- Basecamp **Triage** → Fizzy **Maybe?** by leaving the card untriaged.
-- Every other Basecamp column → Fizzy column with the exact same name.
-- Basecamp card title → Fizzy card title.
-- Basecamp card description → Fizzy card description.
-- Basecamp due date → appended to the description.
-- Basecamp On Hold cards → title prefixed with `ON HOLD: `.
-- No existing-board import in v1.
-- No assignee/comment migration in v1.
+| Basecamp | Fizzy |
+| --- | --- |
+| Card Table name | New board name |
+| Triage | Maybe |
+| Not Now | Not Now |
+| Done | Done |
+| Other columns | Same-named Fizzy workflow columns |
+| On Hold card | Same column + `ON HOLD: ` title prefix |
+| Due date | Appended to card description |
 
-## Authentication
+The importer does not currently migrate assignees, comments, attachments, or existing Fizzy boards.
 
-Basecamp uses OAuth 2.0. The app handles that server-side.
+## Why self-hosted?
 
-Fizzy currently exposes API authentication through personal access tokens. For the local MVP, the token is kept server-side in `.env` as `FIZZY_API_TOKEN`; it is never sent to the browser.
+Basecamp requires OAuth 2.0 for public integrations, so each person can authorize their own Basecamp account without sharing a password. urlBasecamp API authenticationhttps://github.com/basecamp/bc-api/blob/master/sections/authentication.md
 
-The official Fizzy API documents personal access tokens as the integration mechanism and warns that they must be kept secret.
+Fizzy's current API uses personal access tokens. A public hosted version would therefore require a proper per-user credential architecture before it could safely accept other people's Fizzy tokens.
+
+For this first public release, the safest model is:
+
+```
+your computer / your server
+        |
+        +-- your Basecamp OAuth credentials
+        |
+        +-- your Fizzy API token
+        |
+        +-- Basecamp → Fizzy importer
+```
+
+Your credentials stay in your own environment. The app keeps Basecamp OAuth tokens in memory for the current session and does not put them in browser storage. Restarting the server logs the session out.
+
+## Requirements
+
+- Node.js 20+
+- A Basecamp account with access to the Card Table you want to import
+- A Basecamp OAuth integration
+- A Fizzy personal access token with the permissions required to create boards/cards
 
 ## Local setup
 
-1. Create a Basecamp integration at https://launchpad.37signals.com/integrations
-2. Set its redirect URI to:
-   `http://localhost:3000/auth/basecamp/callback`
-3. Generate a Fizzy personal access token with **Read + Write** permission.
-4. Copy `.env.example` to `.env`.
-5. Fill in the Basecamp OAuth values and Fizzy token.
-6. Install dependencies:
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/warmtoast-dev/portfolio-dev.git
+cd portfolio-dev/basecamp-to-fizzy
+```
+
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-7. Start the app:
+### 3. Create a Basecamp integration
+
+Register an integration through Basecamp's integration page:
+
+https://launchpad.37signals.com/integrations
+
+For local development, set the redirect URI to:
+
+```
+http://localhost:3000/auth/basecamp/callback
+```
+
+For a deployed self-hosted instance, use:
+
+```
+https://YOUR-DOMAIN/auth/basecamp/callback
+```
+
+### 4. Create your environment file
+
+```bash
+cp .env.example .env
+```
+
+Fill in:
+
+```env
+BASECAMP_CLIENT_ID=your_basecamp_client_id
+BASECAMP_CLIENT_SECRET=your_basecamp_client_secret
+BASECAMP_REDIRECT_URI=http://localhost:3000/auth/basecamp/callback
+FIZZY_API_TOKEN=your_fizzy_api_token
+PORT=3000
+```
+
+**Never commit `.env`.**
+
+### 5. Start
+
+For development:
 
 ```bash
 npm run dev
 ```
 
-8. Open http://localhost:3000
+For a normal deployment:
 
-## Current status
+```bash
+npm start
+```
 
-The UI now matches the intended one-click flow. The backend contains the real board/column/card write path using the current Fizzy API.
+Open:
 
-The next architectural step before making this a public hosted service is replacing the server-wide Fizzy token with per-user Fizzy authentication. Fizzy's current public API documents personal access tokens and magic-link session authentication rather than an OAuth-style third-party integration.
+http://localhost:3000
 
-## API references
+## Deploying your own copy
 
-- Basecamp API: https://github.com/basecamp/bc-api
-- Fizzy API: https://github.com/basecamp/fizzy/blob/main/docs/API.md
+You can run the app on any Node.js host that supports a long-running Node process.
+
+Set these environment variables on the host:
+
+- `BASECAMP_CLIENT_ID`
+- `BASECAMP_CLIENT_SECRET`
+- `BASECAMP_REDIRECT_URI`
+- `FIZZY_API_TOKEN`
+- `PORT` if your host requires a specific port
+
+Then update the Basecamp integration's redirect URI to exactly match `BASECAMP_REDIRECT_URI`.
+
+Use HTTPS for anything exposed to the public internet.
+
+The current v1 deliberately has no database. Sessions are stored in memory, so a server restart signs users out. This also means there is no persistent credential database to maintain.
+
+## Security notes
+
+- Do not put `FIZZY_API_TOKEN` in frontend JavaScript.
+- Do not commit `.env`.
+- Do not log OAuth access or refresh tokens.
+- The app uses an HttpOnly, SameSite session cookie.
+- Basecamp access tokens expire; the server refreshes them when Basecamp returns an authentication failure.
+- This project is not a "Login with Basecamp" identity provider. Basecamp itself warns against using OAuth as generic third-party login because the returned email address is not verified for that purpose. urlBasecamp authentication guidancehttps://github.com/basecamp/bc-api/blob/master/sections/authentication.md
+
+## Development
+
+```bash
+npm run dev
+```
+
+Before making API changes, check the official documentation:
+
+- urlBasecamp APIhttps://github.com/basecamp/bc-api
+- urlFizzy API documentationhttps://github.com/basecamp/fizzy/tree/main/docs
+
+The project has an `AGENTS.md` with the product and architectural constraints that should be preserved.
+
+## Current limitations
+
+- One Card Table per import.
+- Every import creates a new Fizzy board.
+- No existing-board import.
+- No assignee migration.
+- No comment migration.
+- No attachment migration.
+- No database.
+- No hosted multi-user credential management.
+- Basecamp collection pagination should be handled before relying on this for very large Card Tables.
+
+## License
+
+See the repository license. If you fork this project, keep the attribution and API terms required by Basecamp and Fizzy.
