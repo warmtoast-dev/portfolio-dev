@@ -538,6 +538,20 @@ async function findFizzyColumn(accountSlug, boardId, name) {
   return columns.find((column) => column.name === name);
 }
 
+const requiredConfig = [
+  "BASECAMP_CLIENT_ID",
+  "BASECAMP_CLIENT_SECRET",
+  "BASECAMP_REDIRECT_URI",
+  "FIZZY_API_TOKEN"
+];
+
+const missingConfig = requiredConfig.filter((name) => !process.env[name]);
+
+if (missingConfig.length) {
+  console.error("Missing required environment variables: " + missingConfig.join(", "));
+  process.exit(1);
+}
+
 app.listen(PORT, () => {
   console.log("Basecamp → Fizzy running at http://localhost:" + PORT);
 });
