@@ -4,6 +4,10 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const sessions = new Map();
+const SESSION_COOKIE = "basecamp_fizzy_session";
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24;
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -26,10 +30,6 @@ app.post("/auth/logout", (req, res) => {
   );
   res.status(204).end();
 });
-
-const sessions = new Map();
-const SESSION_COOKIE = "basecamp_fizzy_session";
-const SESSION_TTL_MS = 1000 * 60 * 60 * 24;
 
 function setSessionCookie(res, id) {
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
