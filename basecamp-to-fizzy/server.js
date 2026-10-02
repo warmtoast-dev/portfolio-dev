@@ -319,6 +319,16 @@ app.post("/api/import", async (req, res) => {
       const destination = targetColumnName(basecampColumn.title);
       const key = destination.trim().toLowerCase();
 
+      // Fizzy's Maybe, Not Now, and Done are card states, not workflow
+      // columns. Only create/reuse actual workflow columns here.
+      if (["maybe", "not now", "done"].includes(key)) {
+        columnMap.set(basecampColumn.id, {
+          id: null,
+          name: destination
+        });
+        continue;
+      }
+
       let fizzyColumn = existingByName.get(key);
 
       if (!fizzyColumn) {
