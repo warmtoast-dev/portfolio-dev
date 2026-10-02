@@ -68,7 +68,7 @@ async function basecampRequest(session, endpoint, options = {}) {
       headers: {
         Authorization: "Bearer " + session.basecamp.accessToken,
         Accept: "application/json",
-        "User-Agent": "Basecamp → Fizzy community importer (https://github.com/warmtoast-dev/portfolio-dev)",
+        "User-Agent": "Basecamp to Fizzy community importer (https://github.com/warmtoast-dev/portfolio-dev)",
         ...(options.headers || {})
       }
     });
