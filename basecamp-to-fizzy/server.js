@@ -289,14 +289,7 @@ app.post("/api/import", async (req, res) => {
     const enrichedColumns = [];
 
     for (const column of table.lists || []) {
-      const cards = await basecampFetch(
-        session,
-        session.basecamp.account.href +
-          "/card_tables/lists/" +
-          column.id +
-          "/cards.json"
-      );
-
+      const cards = await basecampFetch(session, column.cards_url);
       enrichedColumns.push({ ...column, cards });
     }
 
