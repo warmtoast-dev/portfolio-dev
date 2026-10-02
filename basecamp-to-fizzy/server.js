@@ -295,9 +295,13 @@ app.post("/api/import", async (req, res) => {
     const enrichedColumns = [];
 
     for (const column of table.columns || []) {
-      const cards = column.cards_url
-        ? await basecampFetch(session, column.cards_url)
-        : [];
+      const cards = await basecampFetch(
+        session,
+        session.basecamp.account.href +
+          "/card_tables/lists/" +
+          column.id +
+          "/cards.json"
+      );
 
       enrichedColumns.push({ ...column, cards });
     }
@@ -380,6 +384,10 @@ app.post("/api/import", async (req, res) => {
     res.json({
       status: "imported",
       boardTitle: cardTable.title,
+      cardsFound: cardTable.columns.reduce(
+        (total, column) => total + (column.cards || []).length,
+        0
+      ),
       cardsCreated,
       boardUrl: "https://app.fizzy.do" + accountSlug + "/boards/" + boardId
     });
