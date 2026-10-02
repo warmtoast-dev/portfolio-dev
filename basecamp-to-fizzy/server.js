@@ -312,38 +312,51 @@ app.post("/api/import", async (req, res) => {
     const boardId = board?.id;
     if (!boardId) throw new Error("Fizzy created the board but did not return its ID.");
 
+    const existingColumns = await fizzyFetch(
+      accountSlug + "/boards/" + boardId + "/columns"
+    );
+
+    const existingByName = new Map(
+      existingColumns.map((column) => [String(column.name).trim().toLowerCase(), column])
+    );
+
     const columnMap = new Map();
 
     for (const basecampColumn of cardTable.lists) {
       const destination = targetColumnName(basecampColumn.title);
+      const key = destination.trim().toLowerCase();
 
-      if (!destination) {
-        columnMap.set(basecampColumn.id, null);
-        continue;
+      let fizzyColumn = existingByName.get(key);
+
+      if (!fizzyColumn) {
+        const created = await fizzyFetch(
+          accountSlug + "/boards/" + boardId + "/columns",
+          {
+            method: "POST",
+            body: JSON.stringify({ column: { name: destination } })
+          }
+        );
+
+        fizzyColumn = created?.id
+          ? created
+          : await findFizzyColumn(accountSlug, boardId, destination);
       }
 
-      const created = await fizzyFetch(
-        accountSlug + "/boards/" + boardId + "/columns",
-        {
-          method: "POST",
-          body: JSON.stringify({ column: { name: destination } })
-        }
-      );
-
-      const createdColumn = created?.id
-        ? created
-        : await findFizzyColumn(accountSlug, boardId, destination);
-
-      if (!createdColumn?.id) {
-        throw new Error("Could not create Fizzy column: " + destination);
+      if (!fizzyColumn?.id) {
+        throw new Error("Could not find or create Fizzy column: " + destination);
       }
 
-      columnMap.set(basecampColumn.id, createdColumn.id);
+      columnMap.set(basecampColumn.id, {
+        id: fizzyColumn.id,
+        name: destination
+      });
     }
 
     let cardsCreated = 0;
 
     for (const basecampColumn of cardTable.lists) {
+      const destination = targetColumnName(basecampColumn.title).trim().toLowerCase();
+
       for (const card of basecampColumn.cards || []) {
         const createdCard = await fizzyFetch(
           accountSlug + "/boards/" + boardId + "/cards",
@@ -360,15 +373,29 @@ app.post("/api/import", async (req, res) => {
 
         cardsCreated += 1;
 
-        const fizzyColumnId = columnMap.get(basecampColumn.id);
         const cardNumber = createdCard?.number;
+        if (!cardNumber) {
+          throw new Error("Fizzy created a card without returning its card number.");
+        }
 
-        if (fizzyColumnId && cardNumber) {
+        const target = columnMap.get(basecampColumn.id);
+
+        if (destination === "done") {
+          await fizzyFetch(
+            accountSlug + "/cards/" + cardNumber + "/close",
+            { method: "POST" }
+          );
+        } else if (destination === "not now") {
+          await fizzyFetch(
+            accountSlug + "/cards/" + cardNumber + "/postpone",
+            { method: "POST" }
+          );
+        } else if (target?.id) {
           await fizzyFetch(
             accountSlug + "/cards/" + cardNumber + "/triage",
             {
               method: "POST",
-              body: JSON.stringify({ column_id: fizzyColumnId })
+              body: JSON.stringify({ column_id: target.id })
             }
           );
         }
