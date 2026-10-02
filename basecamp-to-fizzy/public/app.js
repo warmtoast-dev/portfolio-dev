@@ -1,7 +1,6 @@
 const params = new URLSearchParams(location.search);
 const sessionId = params.get("session");
 const $ = (id) => document.getElementById(id);
-const state = { cardTables: [] };
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -22,26 +21,15 @@ async function loadCardTables() {
   $("start").classList.add("hidden");
   $("workspace").classList.remove("hidden");
 
-  const projects = await api("/api/projects");
-  const results = await Promise.all(
-    projects.map(async (project) => {
-      const tables = await api("/api/projects/" + project.id + "/card-tables");
-      return tables.map((table) => ({
-        ...table,
-        projectName: project.name
-      }));
-    })
-  );
+  const cardTables = await api("/api/card-tables");
 
-  state.cardTables = results.flat();
-
-  $("cardTable").innerHTML = state.cardTables.map((table) =>
+  $("cardTable").innerHTML = cardTables.map((table) =>
     '<option value="' + table.id + '">' +
     escapeHtml(table.projectName + " — " + (table.title || table.name)) +
     "</option>"
   ).join("");
 
-  $("import").disabled = !state.cardTables.length;
+  $("import").disabled = !cardTables.length;
 }
 
 async function importSelected() {
