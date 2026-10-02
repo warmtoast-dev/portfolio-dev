@@ -27,7 +27,7 @@ The importer does not currently migrate assignees, comments, attachments, or exi
 
 ## Why self-hosted?
 
-Basecamp requires OAuth 2.0 for public integrations, so each person can authorize their own Basecamp account without sharing a password. urlBasecamp API authenticationhttps://github.com/basecamp/bc-api/blob/master/sections/authentication.md
+Basecamp requires OAuth 2.0 for public integrations, so each person can authorize their own Basecamp account without sharing a password. https://github.com/basecamp/bc-api/blob/master/sections/authentication.md
 
 Fizzy's current API uses personal access tokens. A public hosted version would therefore require a proper per-user credential architecture before it could safely accept other people's Fizzy tokens.
 
@@ -146,7 +146,7 @@ The current v1 deliberately has no database. Sessions are stored in memory, so a
 - Do not log OAuth access or refresh tokens.
 - The app uses an HttpOnly, SameSite session cookie.
 - Basecamp access tokens expire; the server refreshes them when Basecamp returns an authentication failure.
-- This project is not a "Login with Basecamp" identity provider. Basecamp itself warns against using OAuth as generic third-party login because the returned email address is not verified for that purpose. urlBasecamp authentication guidancehttps://github.com/basecamp/bc-api/blob/master/sections/authentication.md
+- This project is not a "Login with Basecamp" identity provider. Basecamp itself warns against using OAuth as generic third-party login because the returned email address is not verified for that purpose. https://github.com/basecamp/bc-api/blob/master/sections/authentication.md
 
 ## Development
 
@@ -156,8 +156,8 @@ npm run dev
 
 Before making API changes, check the official documentation:
 
-- urlBasecamp APIhttps://github.com/basecamp/bc-api
-- urlFizzy API documentationhttps://github.com/basecamp/fizzy/tree/main/docs
+- https://github.com/basecamp/bc-api
+- https://github.com/basecamp/fizzy/tree/main/docs
 
 The project has an `AGENTS.md` with the product and architectural constraints that should be preserved.
 
