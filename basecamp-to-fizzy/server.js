@@ -15,14 +15,29 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.post("/auth/logout", (req, res) => {
+  const header = req.headers.cookie || "";
+  const match = header.match(new RegExp("(?:^|;\\s*)" + SESSION_COOKIE + "=([^;]+)"));
+  if (match) sessions.delete(match[1]);
+
+  res.setHeader(
+    "Set-Cookie",
+    SESSION_COOKIE + "=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0"
+  );
+  res.status(204).end();
+});
+
 const sessions = new Map();
 const SESSION_COOKIE = "basecamp_fizzy_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24;
 
 function setSessionCookie(res, id) {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   res.setHeader(
     "Set-Cookie",
-    SESSION_COOKIE + "=" + id + "; HttpOnly; SameSite=Lax; Path=/; Max-Age=" + Math.floor(SESSION_TTL_MS / 1000)
+    SESSION_COOKIE + "=" + id + "; HttpOnly; SameSite=Lax; Path=/; Max-Age=" +
+      Math.floor(SESSION_TTL_MS / 1000) +
+      secure
   );
 }
 
@@ -37,7 +52,19 @@ function sessionId() {
 }
 
 function getSession(req) {
-  return getSessionFromCookie(req);
+  const header = req.headers.cookie || "";
+  const match = header.match(new RegExp("(?:^|;\\s*)" + SESSION_COOKIE + "=([^;]+)"));
+  if (!match) return null;
+
+  const id = match[1];
+  const session = sessions.get(id);
+
+  if (!session || Date.now() - session.createdAt > SESSION_TTL_MS) {
+    sessions.delete(id);
+    return null;
+  }
+
+  return session;
 }
 
 async function basecampFetch(session, endpoint, options = {}) {
