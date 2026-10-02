@@ -19,7 +19,7 @@
 
     <section id="start" class="panel">
       <h2>Move a Card Table</h2>
-      <p>Connect Basecamp, choose a Card Table, review the mapping, and import it as a new Fizzy board.</p>
+      <p>Connect Basecamp, choose a Card Table, and import it as a new Fizzy board. No destination board to configure.</p>
       <a class="button" href="/auth/basecamp">Connect Basecamp</a>
     </section>
 
@@ -30,48 +30,27 @@
           <h2>Choose your Card Table</h2>
         </div>
       </div>
-
-      <label>
-        Project
-        <select id="project"></select>
-      </label>
-
-      <label>
-        Card Table
-        <select id="cardTable"></select>
-      </label>
-
-      <button id="preview" class="button" disabled>Review import</button>
-    </section>
-
-    <section id="review" class="panel hidden">
-      <p class="eyebrow">NEW FIZZY BOARD</p>
-      <h2 id="boardName"></h2>
-      <div id="mapping" class="mapping"></div>
-
+      <label>Project<select id="project"></select></label>
+      <label>Card Table<select id="cardTable"></select></label>
       <div class="notice">
-        <strong>v1 import rules</strong>
+        <strong>Import rules</strong>
         <ul>
+          <li>A new Fizzy board is created with the same name as the Card Table.</li>
           <li>Basecamp Triage becomes Fizzy Maybe.</li>
-          <li>Every other column keeps its name.</li>
+          <li>Every other column keeps its Basecamp name.</li>
           <li>On Hold cards get an <code>ON HOLD:</code> title prefix.</li>
-          <li>Due dates are added to the card description.</li>
+          <li>Due dates are preserved in the card description.</li>
         </ul>
       </div>
-
-      <div class="actions">
-        <button id="back" class="button secondary">Back</button>
-        <button id="import" class="button">Import to Fizzy</button>
-      </div>
+      <button id="import" class="button" disabled>Import to Fizzy</button>
     </section>
 
     <section id="done" class="panel hidden">
       <p class="eyebrow">DONE</p>
-      <h2>Ready to create your Fizzy board.</h2>
+      <h2>Import complete.</h2>
       <p id="result"></p>
     </section>
   </main>
-
   <script src="/app.js" type="module"></script>
 </body>
 </html>
